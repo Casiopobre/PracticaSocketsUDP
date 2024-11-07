@@ -6,6 +6,7 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#define M_LEN 1000
 
 /*
 Debe permitir indicar el puerto propio, la IP y el puerto del destinatario del mensaje como 
@@ -21,13 +22,13 @@ int main(int argc, char **argv){
     }
 
     // Declare the variables 
-    int tSock, ownPort = atoi(argv[1]), remotePort = atoi(argv[3]);
+    int tSock, ownPort = atoi(argv[1]), remotePort = atoi(argv[3]), bytesSent;
     char *remoteIP = argv[2];
 
     struct sockaddr_in ownSocketAddress;
     struct sockaddr_in remoteSocketAddress;
     socklen_t socketSize = sizeof(struct sockaddr_in);
-    char *message = "Ola! It's me, Mario!\n";
+    char message[M_LEN] = "Ola! It's me, Mario!\n";
 
     // Create the socket
     tSock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -51,4 +52,15 @@ int main(int argc, char **argv){
         exit(EXIT_FAILURE);
     }
     
+    // Sent the message
+    bytesSent = sendto(tSock, message, strlen(message)+1, 0, &remoteSocketAddress, sizeof(remoteSocketAddress));
+    if(bytesSent == -1){
+        perror("\nUnable to send message\n");
+        exit(EXIT_FAILURE);
+    }
+    printf("\n~~ Bytes sent: %ld\n", bytesSent);
+
+    // Close the socket
+    close(tSock);
+
 }
