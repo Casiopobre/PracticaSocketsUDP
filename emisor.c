@@ -53,12 +53,12 @@ int main(int argc, char **argv){
     }
     
     // Sent the message
-    bytesSent = sendto(tSock, message, strlen(message)+1, 0, &remoteSocketAddress, sizeof(remoteSocketAddress));
+    bytesSent = sendto(tSock, message, strlen(message)+1, 0, (struct sockaddr *) &remoteSocketAddress, sizeof(remoteSocketAddress));
     if(bytesSent == -1){
         perror("\nUnable to send message\n");
         exit(EXIT_FAILURE);
     }
-    printf("\n~~ Bytes sent: %ld\n", bytesSent);
+    printf("\n~~ Bytes sent: %d\n", bytesSent);
 
     // Close the socket
     close(tSock);

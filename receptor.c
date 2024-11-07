@@ -16,7 +16,7 @@ Debe imprimir el número de bytes enviados
 int main(int argc, char **argv)
 {
     // Check if the args received from the command line are correct
-    if (argc < 3)
+    if (argc < 2)
     {
         perror("\nIncorrect number of arguments\n");
         exit(EXIT_FAILURE);
@@ -26,7 +26,6 @@ int main(int argc, char **argv)
 
     // Declare the variables
     int tSock, ownPort = atoi(argv[1]), remotePort = atoi(argv[3]);
-    char *remoteIP = argv[2];
     socklen_t tamano = sizeof(struct sockaddr_in);
     struct sockaddr_in ownSocketAddress;
     struct sockaddr_in remoteSocketAddress;
@@ -56,7 +55,7 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    int bytesIn = recvfrom(tSock, mensajeRecibido, 1000, 0, &remoteSocketAddress, &tamano);
+    int bytesIn = recvfrom(tSock, mensajeRecibido, 1000, 0, (struct sockaddr *) &remoteSocketAddress, &tamano);
 
     printf("Se han recibido %d bytes\n", bytesIn);
     printf("%s\n", mensajeRecibido);
