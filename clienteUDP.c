@@ -85,7 +85,8 @@ int main(int argc, char **argv){
         printf("BytesSent: %d\n", bytesSent);
 
         // Receive message from server
-        ssize_t bytesReceived = recvfrom(tSock, receivedMessage, MESSAGE_LEN, 0, (struct sockaddr *) &remoteSocketAddress, (unsigned int * restrict) sizeof(struct sockaddr_in));
+        socklen_t addr_len = sizeof(remoteSocketAddress);
+        ssize_t bytesReceived = recvfrom(tSock, receivedMessage, MESSAGE_LEN, 0, (struct sockaddr *) &remoteSocketAddress, &addr_len);
         if(bytesReceived < 0){
             perror("Error receiving message from server\n");
             exit(EXIT_FAILURE);

@@ -12,6 +12,8 @@
 
 int comClient(int connectionSock,struct sockaddr_in remoteSocketAddress);
 
+// Se le pasa el numero de puerto por el que atiende las solicitudes
+
 int main(int argc, char **argv)
 {
     // Check if the args received from the command line are correct
@@ -22,7 +24,7 @@ int main(int argc, char **argv)
     }
 
     // Declare the variables
-    int tSock;
+    int tSock, ownPort = atoi(argv[1]), remotePort = atoi(argv[2]);
     struct sockaddr_in ownSocketAddress;
     struct sockaddr_in remoteSocketAddress;
     socklen_t socketSize = sizeof(struct sockaddr_in);
@@ -35,8 +37,17 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
+    // Initialize the structs
+    ownSocketAddress.sin_family = AF_INET;
+    ownSocketAddress.sin_port = htons(ownPort);
+    ownSocketAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+
+    remoteSocketAddress.sin_family = AF_INET;
+    remoteSocketAddress.sin_port = htons(remotePort);
+    // inet_pton(AF_INET, remoteIP, &remoteSocketAddress.sin_addr);
+
     // Assing address and port to the socket
-    if (bind(tSock, (struct sockaddr *)&ownSocketAddress, socketSize) != 0)
+    if (bind(tSock, (struct sockaddr *) &ownSocketAddress, socketSize) != 0)
     {
         perror("\nUnable to assign address to socket\n");
         exit(EXIT_FAILURE);
@@ -71,7 +82,7 @@ int comClient(int tSock,struct sockaddr_in remoteSocketAddress)
         char mensajeRecibido[MESSAGE_LEN];
         socklen_t tamano = sizeof(struct sockaddr_in);
         ssize_t totalBytesReceived = 0;
-        ssize_t bytesReceived = recvfrom(tSock, mensajeRecibido, 1000, 0, (struct sockaddr *)&remoteSocketAddress, &tamano);
+        ssize_t bytesReceived = recvfrom(tSock, mensajeRecibido, MESSAGE_LEN, 0, (struct sockaddr *)&remoteSocketAddress, &tamano);
         if (bytesReceived < 0)
         {
             perror("Error receiving message from client\n");
@@ -83,6 +94,8 @@ int comClient(int tSock,struct sockaddr_in remoteSocketAddress)
             return (1);
         }
         mensajeRecibido[bytesReceived] = '\0';
+        printf("Mensaje recibido: %s\n", mensajeRecibido);
+
         // printf("ReceivedBytes: %ld\n", bytesReceived);
         // printf("Received Message: %s\n", receivedMessage);
 
