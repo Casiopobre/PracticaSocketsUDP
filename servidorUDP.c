@@ -54,7 +54,7 @@ int main(int argc, char **argv)
         while((recvfrom(tSock, receivedMessage, MESSAGE_LEN, 0, (struct sockaddr *)&remoteSocketAddress, &tamano) > 0)){
             //receivedMessage[MESSAGE_LEN] = '\0';
             bytesReceived = strlen(receivedMessage)+1;
-            printf("Mensaje recibido: %s\n", receivedMessage);
+            //printf("Mensaje recibido: %s\n", receivedMessage);
 
             // Transform the message to uppercase
             for (int i = 0; i < bytesReceived; i++)

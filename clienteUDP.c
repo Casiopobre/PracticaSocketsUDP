@@ -69,7 +69,7 @@ int main(int argc, char **argv){
     ssize_t totalBytesReceived = 0;
 
     while(fgets(buffer, sizeof(buffer), lowercaseFile) != NULL){
-        printf("%s\n",buffer);
+        //printf("%s\n",buffer);
         bytesSent = sendto(tSock, buffer, strlen(buffer)+1, 0, (struct sockaddr *) &remoteSocketAddress, sizeof(remoteSocketAddress));
         if (bytesSent < 0){
             perror("Error sending message to server\n");
