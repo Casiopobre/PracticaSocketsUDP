@@ -9,8 +9,8 @@
 #define M_LEN 1000
 
 /*
-Debe permitir indicar el puerto propio, la IP y el puerto del destinatario del mensaje como 
-parámetros en línea de comandos por ese orden
+Programa que envía un mensaje conectandose mediante UDP
+Debe permitir indicar el puerto propio, la IP y el puerto del destinatario del mensaje como parámetros en línea de comandos por ese orden
 Debe imprimir el número de bytes enviados
 */
 

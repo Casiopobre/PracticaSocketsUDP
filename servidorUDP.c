@@ -10,10 +10,7 @@
 #define PETITIONS_NUM 10
 #define MESSAGE_LEN 1024
 
-int comClient(int connectionSock,struct sockaddr_in remoteSocketAddress);
-
 // Se le pasa el numero de puerto por el que atiende las solicitudes
-
 int main(int argc, char **argv)
 {
     // Check if the args received from the command line are correct
@@ -44,81 +41,74 @@ int main(int argc, char **argv)
 
     remoteSocketAddress.sin_family = AF_INET;
     remoteSocketAddress.sin_port = htons(remotePort);
-    // inet_pton(AF_INET, remoteIP, &remoteSocketAddress.sin_addr);
 
-    // Assing address and port to the socket
-    if (bind(tSock, (struct sockaddr *) &ownSocketAddress, socketSize) != 0)
+    // Assign address and port to the socket
+    if (bind(tSock, (struct sockaddr *)&ownSocketAddress, socketSize) != 0)
     {
         perror("\nUnable to assign address to socket\n");
         exit(EXIT_FAILURE);
     }
 
-    char serverIP[INET_ADDRSTRLEN];
-    inet_ntop(AF_INET, &remoteSocketAddress.sin_addr, serverIP, INET_ADDRSTRLEN);
-    // printf("\n~~ Server IP: %s", serverIP);
-    // printf("\n~~ Server Port: %d\n", portNum);
-
     while (1)
     {
-        // Accept connection
-        char iptext[INET_ADDRSTRLEN];
-        if(inet_ntop(AF_INET, (const void *)&remoteSocketAddress.sin_addr.s_addr, iptext, INET_ADDRSTRLEN)!=NULL){
-            printf("Ha enviado los datos el servidor con ip %s y puerto %d\n", iptext, ntohs(remoteSocketAddress.sin_port));
-    }else{
-        perror("Ha habido un error con la ip:");
-    }
-
-        comClient(tSock,remoteSocketAddress);
-    }
-
-    return 1;
-}
-
-int comClient(int tSock,struct sockaddr_in remoteSocketAddress)
-{
-    // Receive message from client
-    while (1)
-    {
-        char mensajeRecibido[MESSAGE_LEN];
+        // Receive initial message from a new client
+        char receivedMessage[MESSAGE_LEN];
         socklen_t tamano = sizeof(struct sockaddr_in);
-        ssize_t totalBytesReceived = 0;
-        ssize_t bytesReceived = recvfrom(tSock, mensajeRecibido, MESSAGE_LEN, 0, (struct sockaddr *)&remoteSocketAddress, &tamano);
+        ssize_t bytesReceived = recvfrom(tSock, receivedMessage, MESSAGE_LEN, 0, (struct sockaddr *)&remoteSocketAddress, &tamano);
         if (bytesReceived < 0)
         {
-            perror("Error receiving message from client\n");
-            exit(EXIT_FAILURE);
+            perror("Error receiving initial message from client\n");
+            continue;
         }
-        else if (bytesReceived == 0)
+
+        // Display client's IP and port
+        char iptext[INET_ADDRSTRLEN];
+        if (inet_ntop(AF_INET, (const void *)&remoteSocketAddress.sin_addr.s_addr, iptext, INET_ADDRSTRLEN) != NULL)
         {
-            perror("Client Disconnected\n");
-            return (1);
+            printf("Connected to client with IP %s and port %d\n", iptext, ntohs(remoteSocketAddress.sin_port));
         }
-        mensajeRecibido[bytesReceived] = '\0';
-        printf("Mensaje recibido: %s\n", mensajeRecibido);
-
-        // printf("ReceivedBytes: %ld\n", bytesReceived);
-        // printf("Received Message: %s\n", receivedMessage);
-
-        totalBytesReceived += bytesReceived;
-        // Transform to uppercase
-        for (int i = 0; i < bytesReceived; i++)
-            mensajeRecibido[i] = toupper(mensajeRecibido[i]);
-
-        // Send the message to the client
-        // printf("SentMessage: %s\n", receivedMessage);
-        ssize_t totalBytesSent = 0;
-        ssize_t bytesSent = sendto(tSock, mensajeRecibido, bytesReceived, 0, (struct sockaddr *) &remoteSocketAddress, sizeof(remoteSocketAddress));
-        if (bytesSent < 0)
+        else
         {
-            perror("Error sending message to client\n");
-            exit(EXIT_FAILURE);
+            perror("Error with IP address:");
         }
-        totalBytesSent += bytesSent;
+
+        // Loop to handle messages from the current client
+        while (1)
+        {
+            // Receive a message from the client
+            bytesReceived = recvfrom(tSock, receivedMessage, MESSAGE_LEN, 0, (struct sockaddr *)&remoteSocketAddress, &tamano);
+            if (bytesReceived < 0)
+            {
+                perror("Error receiving message from client\n");
+                break;
+            }
+            else if (bytesReceived == 0)
+            {
+                printf("Client disconnected\n");
+                break;
+            }
+            receivedMessage[bytesReceived] = '\0';
+            printf("Mensaje recibido: %s\n", receivedMessage);
+
+            // Transform the message to uppercase
+            for (int i = 0; i < bytesReceived; i++)
+                receivedMessage[i] = toupper(receivedMessage[i]);
+
+            // Send the uppercase message back to the client
+            ssize_t bytesSent = sendto(tSock, receivedMessage, bytesReceived, 0, (struct sockaddr *)&remoteSocketAddress, sizeof(remoteSocketAddress));
+            if (bytesSent < 0)
+            {
+                perror("Error sending message to client\n");
+                break;
+            }
+        }
+
+        // This client has disconnected; wait for a new client
+        printf("Waiting for a new client...\n");
     }
-    // Comprobation printfs
-    // printf("Bytes sent: %ld\n", totalBytesSent);
-    // printf("Bytes received: %ld\n", totalBytesReceived);
 
-    // Close the sockets
-    // close(connectionSock);}
+    // Close the socket
+    close(tSock);
+
+    return 0;
 }

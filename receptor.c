@@ -6,11 +6,11 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#define MAX_LEN 1024
 
 /*
-Debe permitir indicar el puerto propio, la IP y el puerto del destinatario del mensaje como
-parámetros en línea de comandos por ese orden
-Debe imprimir el número de bytes enviados
+Debe escuchar por todas sus interfaces usando un número de puerto indicado como parámetro en línea de comandos
+Debe imprimir en pantalla la IP y el puerto del que le envía el mensaje, además del mensaje recibido
 */
 
 int main(int argc, char **argv)
@@ -22,11 +22,10 @@ int main(int argc, char **argv)
         exit(EXIT_FAILURE);
     }
 
-    char mensajeRecibido[1000];
+    char receivedMessage[MAX_LEN];
 
     // Declare the variables
     int tSock, ownPort = atoi(argv[1]), remotePort = atoi(argv[3]);
-    socklen_t tamano = sizeof(struct sockaddr_in);
     struct sockaddr_in ownSocketAddress;
     struct sockaddr_in remoteSocketAddress;
     socklen_t socketSize = sizeof(struct sockaddr_in);
@@ -49,21 +48,23 @@ int main(int argc, char **argv)
     // inet_pton(AF_INET, remoteIP, &remoteSocketAddress.sin_addr);
 
     // Assign addreess to the socket
-    if (bind(tSock, (struct sockaddr *)&ownSocketAddress, socketSize) != 0)
+    if (bind(tSock, (struct sockaddr *) &ownSocketAddress, socketSize) != 0)
     {
         perror("\nUnable to assign address to socket\n");
         exit(EXIT_FAILURE);
     }
 
-    int bytesIn = recvfrom(tSock, mensajeRecibido, 1000, 0, (struct sockaddr *) &remoteSocketAddress, &tamano);
+    int bytesIn = recvfrom(tSock, receivedMessage, sizeof(receivedMessage), 0, (struct sockaddr *) &remoteSocketAddress, &socketSize);
 
-    printf("Se han recibido %d bytes\n", bytesIn);
-    printf("%s\n", mensajeRecibido);
+    printf("Bytes received: %d\n", bytesIn);
+    printf("%f\n", receivedMessage);
     char iptext[INET_ADDRSTRLEN];
     if(inet_ntop(AF_INET, (const void *)&remoteSocketAddress.sin_addr.s_addr, iptext, INET_ADDRSTRLEN)!=NULL){
-            printf("Ha enviado los datos el servidor con ip %s y puerto %d\n", iptext, ntohs(remoteSocketAddress.sin_port));
+            printf("~Server ip: %s\n~Port: %d\n", iptext, ntohs(remoteSocketAddress.sin_port));
     }else{
         perror("Ha habido un error con la ip:");
     }
 
+    // Close the socket
+    close(tSock);
 }

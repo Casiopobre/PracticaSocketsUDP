@@ -46,12 +46,6 @@ int main(int argc, char **argv){
     remoteSocketAddress.sin_family = AF_INET;
     remoteSocketAddress.sin_port = htons(remotePort);
     inet_pton(AF_INET, remoteIP, &remoteSocketAddress.sin_addr);
-
-    //Assign addreess to the socket
-    if (bind(tSock, (struct sockaddr *) &ownSocketAddress, socketSize) != 0){
-        perror("\nUnable to assign address to socket\n");
-        exit(EXIT_FAILURE);
-    }
     
     // Open the files
     FILE *lowercaseFile = fopen(argv[4], "r");
@@ -59,17 +53,17 @@ int main(int argc, char **argv){
         perror("Erro ao abrir o arquivo\n");
         exit(EXIT_FAILURE);
     }
+
     char *uFileName = malloc(strlen(argv[4]) * 4);
     for(int i = 0; i < strlen(argv[4]); i++)
             uFileName[i] = toupper(argv[4][i]);
-
     FILE* uppercaseFile = fopen(uFileName, "w");
     if(uppercaseFile == NULL){
         perror("Erro ao abrir o arquivo\n");
         exit(EXIT_FAILURE);
     }
 
-    // Sent the message
+    // Send the message
     char buffer[MESSAGE_LEN];
     ssize_t totalBytesSent = 0;
     ssize_t totalBytesReceived = 0;
@@ -81,12 +75,12 @@ int main(int argc, char **argv){
             exit(EXIT_FAILURE);
         }
         totalBytesSent += bytesSent;
-        printf("Message sent: %s\n", buffer);
-        printf("BytesSent: %d\n", bytesSent);
+        //printf("Message sent: %s\n", buffer);
+        //printf("BytesSent: %d\n", bytesSent);
 
-        // Receive message from server
-        socklen_t addr_len = sizeof(remoteSocketAddress);
-        ssize_t bytesReceived = recvfrom(tSock, receivedMessage, MESSAGE_LEN, 0, (struct sockaddr *) &remoteSocketAddress, &addr_len);
+        // Receive message from server and save it into the file
+        socklen_t addressLen = sizeof(remoteSocketAddress);
+        ssize_t bytesReceived = recvfrom(tSock, receivedMessage, MESSAGE_LEN, 0, (struct sockaddr *) &remoteSocketAddress, &addressLen);
         if(bytesReceived < 0){
             perror("Error receiving message from server\n");
             exit(EXIT_FAILURE);
@@ -97,13 +91,13 @@ int main(int argc, char **argv){
 
     }
     
-    printf("Bytes sent: %ld\n", totalBytesSent);
-    printf("Bytes received: %ld\n", totalBytesReceived);
+    printf("~Bytes sent: %ld\n", totalBytesSent);
+    printf("~Bytes received: %ld\n", totalBytesReceived);
 
     close(tSock);
     free(uFileName);
     fclose(lowercaseFile);
     fclose(uppercaseFile);
-    return 0;
+    return 1;
 }
 
