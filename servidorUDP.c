@@ -49,12 +49,18 @@ int main(int argc, char **argv)
     int bytesReceived;
     ssize_t bytesSent;
 
+    printf("~Servidor levantado en el puerto %i\n",ownPort);
+
     while (1){
+        
         // Receive initial message from a new client
         while((recvfrom(tSock, receivedMessage, MESSAGE_LEN, 0, (struct sockaddr *)&remoteSocketAddress, &tamano) > 0)){
             //receivedMessage[MESSAGE_LEN] = '\0';
             bytesReceived = strlen(receivedMessage)+1;
             //printf("Mensaje recibido: %s\n", receivedMessage);
+            char ip[INET_ADDRSTRLEN];
+            inet_ntop(AF_INET, &remoteSocketAddress.sin_addr, ip, sizeof(ip));
+            printf("Conexion de %s en puerto %i\n",ip,ntohs(remoteSocketAddress.sin_port));
 
             // Transform the message to uppercase
             for (int i = 0; i < bytesReceived; i++)
